@@ -16,7 +16,7 @@ def adotinv_flatmatter(a):
     return np.sqrt(a) 
 
 def adotinv(a,om,ol, orad):
-    adot = a * np.sqrt(orad * a**-4 + om * a**-3 + (1 - om - ol)*a**-2 + ol)
+    adot = a * np.sqrt(orad * a**-4 + om * a**-3 + (1 - om - ol - orad)*a**-2 + ol)
     return 1.0/adot
 
 # And set some constants
@@ -60,8 +60,8 @@ print("The time at which the universe will be double its current size is", age_d
 
 
 # Start by making an array of scalefactors
-astart = 0.0
-astop = 2.05
+astart = 0
+astop = 2.5
 astep = 0.05 # Make this finer to make the plot smoother
 a_arr = np.arange(astart,astop,astep)
 
@@ -97,7 +97,7 @@ plt.show()
 # Calculate for the universe we think we live in, with approximately matter density 0.3 and cosmological constant 0.7
 om = 0.3
 ol = 0.7
-orad = 0.01
+orad = 0
 
 # Note that when you integrate something with more than one argument you pass it with args=(arg1,arg2) in the integrate function
 # e.g. "integrate.quad(adotinv, lower_limit, uper_limit, args=(om,ol))""
@@ -118,7 +118,7 @@ for om in om_arr:
     plt.plot(t_lookback_Gyr,a_arr,label='$(\Omega_M,\Omega_\Lambda)$=(%.1f,%.1f)'%(om,ol))
 
 # Plot this new model (note I've added a label that can be used in the legend)
-plt.plot(t_lookback_Gyr,a_arr,label='$(\Omega_M,\Omega_\Lambda)$=(%.2f,%.2f)'%(om,ol)) 
+#plt.plot(t_lookback_Gyr,a_arr,label='$(\Omega_M,\Omega_\Lambda)$=(%.2f,%.2f)'%(om,ol)) 
 plt.axvline(x=0,linestyle=':') # Plot some crosshairs 
 plt.axhline(y=1,linestyle=':')
 plt.xlabel('Lookback time (Gyr)')
