@@ -63,6 +63,8 @@ a_arr = np.arange(astart, astop, astep)
 # Calculate for the universe we think we live in, with approximately matter density 0.3 and cosmological constant 0.7
 om, ol, orad = 0.3, 0.7, 0.00005
 
+ok = 1 - om - ol - orad
+Rscale = a_arr * c / (np.sqrt(abs(ok)) * H0kmsmpc)
 # Note that when you integrate something with more than one argument you pass it with args=(arg1,arg2) in the integrate function
 # e.g. "integrate.quad(adotinv, lower_limit, uper_limit, args=(om,ol))""
 t_lookback_Gyr = np.array([integrate.quad(adotinv, 1, upper_limit, args=(om,ol, orad))[0] for upper_limit in a_arr])/H0y
@@ -72,6 +74,9 @@ ax.plot(t_lookback_Gyr,a_arr,label='$(\Omega_M,\Omega_\Lambda)$=(%.2f,%.2f)'%(om
 ax.axvline(x=0,linestyle=':'); plt.axhline(y=1,linestyle=':') # Plot some crosshairs 
 ax.set_xlabel('Lookback time (Gyr)'); ax.set_ylabel('Scalefactor')
 ax.legend(loc='lower right',frameon=False)
+ax2 = ax.twinx()
+ax2.plot(t_lookback_Gyr, Rscale, alpha=0); ax2.set_ylabel("Scale Factor $R$")   #plot an invisible curve so that there is the R scale factor axis too
+ax2.ticklabel_format(axis='y', style='scientific', useMathText=True)
 fig.savefig(dir_path+'\\Part One Graphs\\Scalefactor-vs-LookbackTime for Our Universe.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Scalefactor-vs-LookbackTime for Our Universe.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 plt.close(fig)
@@ -79,15 +84,18 @@ plt.close(fig)
 
 om_arr = np.arange(0,2.1,0.4)
 fig, ax = plt.subplots()
+ax2 = ax.twinx()
 for om in om_arr:
     t_lookback_Gyr = np.array([integrate.quad(adotinv, 1, upper_limit, args=(om, ol, orad))[0] for upper_limit in a_arr])/H0y
     ax.plot(t_lookback_Gyr, a_arr, label='$(\Omega_M,\Omega_\Lambda)$=(%.1f,%.1f)'%(om,ol))
+    ax2.plot(t_lookback_Gyr, Rscale)
 
 # Plot this new model (note I've added a label that can be used in the legend)
 #plt.plot(t_lookback_Gyr,a_arr,label='$(\Omega_M,\Omega_\Lambda)$=(%.2f,%.2f)'%(om,ol)) 
 ax.axvline(x=0,linestyle=':'); ax.axhline(y=1,linestyle=':') #Plot some crosshairs 
 ax.set_xlabel('Lookback time (Gyr)'); ax.set_ylabel('Scalefactor ($a$)')  
 ax.legend(loc='upper left',frameon=False)
+ax2.set_ylabel("Scale Factor $R$"); ax2.ticklabel_format(axis='y', style='scientific', useMathText=True)
 fig.savefig(dir_path+'\\Part One Graphs\\Scalefactor-vs-LookbackTime.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Scalefactor-vs-LookbackTime.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 plt.close(fig)
@@ -154,27 +162,75 @@ fig.savefig(dir_path+'\\Part One Graphs\\DL and DA vs Redshift.pdf', dpi=200, bb
 plt.close(fig)
 
 
-ScaleArr = np.arange(0.001, 2, 0.001)
+om, ol, orad = 0.3, 0.7, 0.00005
+scalemin, scalemax, scalestep = 0.00001, 2, 0.001
+ScaleArr = np.arange(scalemin, scalemax + scalestep, scalestep)
+
 ParticleHoriz = np.zeros(len(ScaleArr))
 EventHoriz = np.zeros(len(ScaleArr))
 HubbleHoriz = np.zeros(len(ScaleArr))
+LightCone = np.zeros(len(ScaleArr))
 for i, a in enumerate(ScaleArr):
     ParticleHoriz[i] = integrate.quad(aadotinv, 0, a, args=(om, ol, orad))[0]
     EventHoriz[i] = integrate.quad(aadotinv, a, np.inf, args=(om, ol, orad))[0]
     HubbleHoriz[i] = adotinv(a, om, ol, orad)
     
-# Sub in the required constants to get the comoving distance R_0*X
 ParticleHoriz = ParticleHoriz * cH0Glyr # Distance in Glyr
 EventHoriz = EventHoriz * cH0Glyr
 HubbleHoriz = HubbleHoriz * cH0Glyr
+Lightcone = np.array([integrate.quad(aadotinv, lower_limit, 1, args=(om,ol, orad))[0] for lower_limit in np.arange(0.001, 1, 0.001)]) * cH0Glyr
 
-fig, ax = plt.subplots()
-ax.plot(ParticleHoriz, ScaleArr, color='g', label="Particle Horizon"); ax.plot(-ParticleHoriz, ScaleArr, color='g')
-ax.plot(EventHoriz, ScaleArr, color='b', label="Event Horizon"); ax.plot(-EventHoriz, ScaleArr, color='b')
-ax.plot(HubbleHoriz, ScaleArr, color='r', label="Hubble Sphere"); ax.plot(-HubbleHoriz, ScaleArr, color='r')
+w, h = plt.figaspect(0.333)
+fig, ax = plt.subplots(figsize=(w, h)); ax2 = ax.twinx()
+ParticleColour = '#2E8540'; EventColour = '#D6465C'; HubbleColour = '#307CC0'; LightColour = '#8F4F9F'; DarkColour = 'gray'
+ParticleColour = 'g'; EventColour = 'r'
+
+ax.plot(ParticleHoriz, ScaleArr, color=ParticleColour, label="Particle Horizon"); ax.plot(-ParticleHoriz, ScaleArr, color=ParticleColour)
+ax.plot(EventHoriz, ScaleArr, color=EventColour, label="Event Horizon"); ax.plot(-EventHoriz, ScaleArr, color=EventColour)
+ax.plot(HubbleHoriz, ScaleArr, color=HubbleColour, label="Hubble Sphere"); ax.plot(-HubbleHoriz, ScaleArr, color=HubbleColour)
+ax.plot(Lightcone, np.arange(0.001, 1, 0.001), color=LightColour, label="Light Cone"); ax.plot(-Lightcone, np.arange(0.001, 1, 0.001), color=LightColour);
+
+plt.fill_betweenx(ScaleArr, EventHoriz, HubbleHoriz, color=EventColour, alpha=0.15);  plt.fill_betweenx(ScaleArr, -EventHoriz, -HubbleHoriz, color=EventColour, alpha=0.15);
+
 ax.legend(loc="lower right"); ax.grid(which="major")
+ax.axhline(y=1, linestyle='-', color='k', alpha=0.7)
 ax.set_xlabel('Comoving Distance $R_0 \chi$ (Glyr)'); ax.set_ylabel('Scalefactor ($a$)')
-#ax.set_xlim(xmin=0); ax.set_ylim(ymin=0)
+ax.set_ylim(0, max(ScaleArr)); ax.set_xlim(-max(EventHoriz), max(EventHoriz))
+
+
+
+#the following code creates the time y-axis on the right hand side
+locs = ax.get_yticks()[:-1]
+ax2ticks = np.zeros(len(locs))
+for i, tick in enumerate(locs):
+    if tick == 0:
+        ax2ticks[i] = "0"
+    else:
+        ax2ticks[i] = str(round(integrate.quad(adotinv, 0, tick, args=(om,ol, orad))[0]/H0y, 1)) #calculates the time associated with scale factor of a=tick
+mn, mx = ax.get_ylim(); ax2.set_ylim(mn, mx)
+ax2.set_yticks(locs); ax2.set_yticklabels(ax2ticks)
+ax2.set_ylabel("Time (Gyr)")
+
+#now to create the redshift ticks on the top x-axis
+ax3 = ax.twiny()
+mn, mx = ax.get_xlim()
+ax3.set_xlabel("Redshift ($z$)")
+ax3.set_xlim(mn, mx)
+redshifts = np.array([0, 1, 2, 5, 10, 50, 1000])
+CoMovCoord = np.zeros(len(redshifts))
+for i, z in enumerate(redshifts):
+    CoMovCoord[i] = cH0Glyr * integrate.quad(Ez, 0, z, args=(om, ol, orad))[0]
+    ax3.axvline(CoMovCoord[i], linestyle=":", alpha=0.5, color=DarkColour)
+    ax3.axvline(-CoMovCoord[i], linestyle=":", alpha=0.5, color=DarkColour)
+
+CoMovCoord = np.append(-CoMovCoord[::-1], CoMovCoord)
+redshifts = np.append(redshifts[::-1], redshifts)
+ax3.set_xticks(CoMovCoord); ax3.set_xticklabels(redshifts)
+
+#now to save the graph
+plt.fill_between(EventHoriz, mx * np.ones(len(ScaleArr)), ScaleArr, color=DarkColour, alpha=0.2)
+plt.fill_between(-EventHoriz, mx * np.ones(len(ScaleArr)), ScaleArr, color=DarkColour, alpha=0.2)
+
 fig.savefig(dir_path+'\\Part One Graphs\\Spacetime Diagram.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Spacetime Diagram.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 plt.close(fig)
