@@ -80,7 +80,7 @@ ax.plot(t_lookback_Gyr,a_arr,label='$(\Omega_M,\Omega_\Lambda)$=(%.2f,%.2f)'%(om
 ax.axvline(x=0,linestyle=':'); plt.axhline(y=1,linestyle=':') # Plot some crosshairs 
 ax.set_xlabel('Lookback Time (Gyr)'); ax.set_ylabel('Scalefactor ($a$)')
 ax.legend(loc='lower right',frameon=False)
-ax2 = ax.twinx()
+ax2 = ax.twinx()        #makes a twin y axis so that we can compare a scale factor with R scale factor
 ax2.plot(t_lookback_Gyr, Rscale, alpha=0); ax2.set_ylabel("Scalefactor $R$")   #plot an invisible curve so that there is the R scale factor axis too
 ax2.ticklabel_format(axis='y', style='scientific', useMathText=True)
 fig.savefig(dir_path+'\\Part One Graphs\\Scalefactor-vs-LookbackTime for Our Universe.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
@@ -93,12 +93,10 @@ om_arr = np.arange(0,2.1,0.4)
 fig, ax = plt.subplots()
 ax2 = ax.twinx()
 for OM in om_arr:
-    t_lookback_Gyr = np.array([integrate.quad(adotinv, 1, upper_limit, args=(OM, ol, orad))[0] for upper_limit in a_arr])/H0y
-    ax.plot(t_lookback_Gyr, a_arr, label='$(\Omega_M,\Omega_\Lambda)$=(%.1f,%.1f)'%(OM,ol))
-    ax2.plot(t_lookback_Gyr, Rscale)
+    t_lookback_Gyr = np.array([integrate.quad(adotinv, 1, upper_limit, args=(OM, ol, orad))[0] for upper_limit in a_arr]) / H0y  #calculates lookback time for some om 
+    ax.plot(t_lookback_Gyr, a_arr, label='$(\Omega_M,\Omega_\Lambda)$=(%.1f,%.1f)'%(OM,ol))     #plots the scale factor vs lookback time
+    ax2.plot(t_lookback_Gyr, Rscale)    #as above, but for R scale factor too
 
-# Plot this new model (note I've added a label that can be used in the legend)
-#plt.plot(t_lookback_Gyr,a_arr,label='$(\Omega_M,\Omega_\Lambda)$=(%.2f,%.2f)'%(om,ol)) 
 ax.axvline(x=0,linestyle=':'); ax.axhline(y=1,linestyle=':') #Plot some crosshairs 
 ax.set_xlabel('Lookback time (Gyr)'); ax.set_ylabel('Scalefactor ($a$)')  
 ax.legend(loc='upper left',frameon=False)
@@ -109,21 +107,18 @@ plt.close(fig)
 
 
 
-om_arr = np.arange(0, 10, 0.1)
-ol_arr = np.arange(-10, 10, 0.1)
-MAge_of_uni = np.zeros(len(om_arr))
-LAge_of_uni = np.zeros(len(ol_arr))
-fig, ax = plt.subplots()
+om_arr = np.arange(0, 10, 0.1); ol_arr = np.arange(-10, 10, 0.1)
+MAge_of_uni = np.zeros(len(om_arr))         #age of universe for mass density 
+LAge_of_uni = np.zeros(len(ol_arr))         #age of universe for cosmological constant
 for i, OM in enumerate(om_arr):
-    MAge_of_uni[i] = integrate.quad(adotinv, 0, 1, args=(OM, ol, orad))[0] / H0y
+    MAge_of_uni[i] = integrate.quad(adotinv, 0, 1, args=(OM, ol, orad))[0] / H0y        #calculates age of universe from mass density OM
 for i, OL in enumerate(ol_arr):
-    LAge_of_uni[i] = integrate.quad(adotinv, 0, 1, args=(om, OL, orad))[0] / H0y
+    LAge_of_uni[i] = integrate.quad(adotinv, 0, 1, args=(om, OL, orad))[0] / H0y        #calculates age of universe from cosmo constant OL
+fig, ax = plt.subplots()
 ax.plot(om_arr, MAge_of_uni, color='g', label='Mass Density $\Omega_m$ $(\Omega_\Lambda = 0.7)$')  
 ax.plot(ol_arr, LAge_of_uni, color='#307CC0', label='Cosmological Constant $\Omega_\Lambda$ \n $(\Omega_m = 0.3)$')
-ax.set_xlabel("Density Parameter Value ($\Omega_i$)")      
-ax.set_ylabel("Age of Universe (Gyr)")  
-ax.legend(loc='upper left')
-ax.grid(axis='y', which='major')
+ax.set_xlabel("Density Parameter Value ($\Omega_i$)"); ax.set_ylabel("Age of Universe (Gyr)")  
+ax.legend(loc='upper left'); ax.grid(axis='y', which='major')
 ax.axvline(x=0,linestyle=':');
 fig.savefig(dir_path+'\\Part One Graphs\\Age of Universe vs Parameter Value.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Age of Universe vs Parameter Value.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
@@ -132,7 +127,7 @@ plt.close(fig)
 
 
 fig, ax = plt.subplots()
-redshift = -1 + (1 / a_arr)
+redshift = -1 + (1 / a_arr)         #this is the formula for z in terms of a
 ax.plot(a_arr, redshift)
 ax.set_xlabel("Scalefactor ($a$)"); ax.set_ylabel("Redshift ($z$)")
 fig.savefig(dir_path+'\\Part One Graphs\\Redshift vs Scalefactor.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
@@ -141,10 +136,11 @@ plt.close(fig)
 
 
 
+amin, amax, astep = 0.1, 1, 0.05
+a_arr = np.arange(amin, amax + astep, astep)
+redshift = -1 + (1 / a_arr)         #calculates redshift from this new array
+t_lookback_Gyr = np.array([integrate.quad(adotinv, 1, upper_limit, args=(om, ol, orad))[0] for upper_limit in a_arr]) / H0y
 fig, ax = plt.subplots()
-a_arr = np.arange(0.1, 1 + 0.01, 0.05)
-redshift = -1 + (1 / a_arr)
-t_lookback_Gyr = np.array([integrate.quad(adotinv, 1, upper_limit, args=(om, ol, orad))[0] for upper_limit in a_arr])/H0y
 ax.plot(redshift, t_lookback_Gyr)
 ax.set_xlabel("Redshift ($z$)"); ax.set_ylabel("Lookback Time (Gyr)")
 ax.set_xlim(xmin=0); ax.set_ylim(ymax=0)
@@ -156,39 +152,57 @@ plt.close(fig)
 
 minlog, maxlog = -6, 2
 a_arr = np.logspace(minlog, maxlog, num=100, base=10)
-norm_om = (om * a_arr**-3) / ((om * a_arr**-3) + (orad * a_arr**-4) + ol)
-norm_orad = (orad * a_arr**-4) / ((om * a_arr**-3) + (orad * a_arr**-4) + ol)
-norm_ol = ol / ((om * a_arr**-3) + (orad * a_arr**-4) + ol)
+norm_om = (om * a_arr**-3) / ((om * a_arr**-3) + (orad * a_arr**-4) + ol)       #normalised mass density, om / otot
+norm_orad = (orad * a_arr**-4) / ((om * a_arr**-3) + (orad * a_arr**-4) + ol)   #normalised radiation density, orad / otot
+norm_ol = ol / ((om * a_arr**-3) + (orad * a_arr**-4) + ol)                     #normalised cosmo constant, ol / otot
 
 fig, ax = plt.subplots()
-ax.plot(a_arr, norm_om, color='#307CC0', label="$\Omega_m$")
-ax.plot(a_arr, norm_orad, color='r', label="$\Omega_r$")
-ax.plot(a_arr, norm_ol, color='#8F4F9F', label="$\Omega_\Lambda$")
-
-#the following sets the x-scale to be logarithmic, and formats the minor tick labels so that they actually show up
+ax.plot(a_arr, norm_om, color='#307CC0', label="$\Omega_m$")        #a nice blue colour
+ax.plot(a_arr, norm_orad, color='r', label="$\Omega_r$")            #standard red colour
+ax.plot(a_arr, norm_ol, color='#8F4F9F', label="$\Omega_\Lambda$")  #a nice purple colour
+#the following sets the x-scale to be logarithmic, and formats the minor tick labels so that they actually show up (pls dont fiddle with this, it's difficult)
 ax.set_xscale("log")
-ax.xaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10, numticks=(abs(minlog) + abs(maxlog) + 2)))
-ax.xaxis.set_minor_locator(matplotlib.ticker.LogLocator(base=10.0,subs=(0.2,0.4,0.6,0.8),numticks=(abs(minlog) + abs(maxlog) + 2)))
-ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-
+ax.xaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10, numticks=(abs(minlog) + abs(maxlog) + 2))) #numticks must be > the number of ticks for some reason??
+ax.xaxis.set_minor_locator(matplotlib.ticker.LogLocator(base=10.0,subs=(0.2,0.4,0.6,0.8),numticks=(abs(minlog) + abs(maxlog) + 2)))     #makes a minor tick for each increment of 0.2 between major ticks
+ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter()) #this removes labels from the minor ticks
 ax.set_xlabel("Scalefactor ($a$)"); ax.set_ylabel("Normalised Density ($\Omega_i / \Omega_{tot}$)")
 ax.legend(loc='center right')
-ax.set_ylim(ymin=-0.003); ax.set_xlim(min(a_arr), max(a_arr))
+ax.set_ylim(ymin=-0.003); ax.set_xlim(min(a_arr), max(a_arr))   #sets ylim just below 0 so that you can see the bottom of the curves properly
 fig.savefig(dir_path+'\\Part One Graphs\\Normalised Densities vs Scalefactor.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Normalised Densities vs Scalefactor.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 plt.close(fig)
 
 
 
-a_arr = np.arange(0.02, 2, 0.02)
-hubble_arr = H0kmsmpc * (adotinv(a_arr, om, ol, orad) / a_arr)**-1    #inverse due to the adotinv function being the reciprocal
+amin, amax, astep, scalestep = 0.02, 2, 0.02, 0.2
+a_arr = np.arange(amin, amax + astep, astep)
+times = np.zeros(len(a_arr))
 fig, ax = plt.subplots()
-ax.plot(a_arr, hubble_arr)
-ax.set_xlabel("Scalefactor ($a$)"); ax.set_ylabel("Hubble Parameter (km/s/Mpc)")
-ax.axvline(x=1,linestyle=':'); ax.axhline(y=H0kmsmpc,linestyle=':')
+ax2 = ax.twiny()        #create alternate x-axis to sit at the top (represents scalefactor a)
+scaletickslabs, scaletickslocs = [0], [0]       #initialize lists for the alternate (top) x-axis ticks
+for i, a in enumerate(a_arr):
+    times[i] = integrate.quad(adotinv, 0, a, args=(om, ol, orad))[0] / H0y      #calculates age of universe at scale factor a
+    if a == 1:
+        ax.axvline(x=times[i],linestyle=':')        #plots a vertical line at current scale factor (age of universe)
+for a in np.arange(0, amax + scalestep, scalestep):
+    if a == 0:
+        pass        #we want to avoid a=0 or else encounter a math error
+    else:
+        time = integrate.quad(adotinv, 0, a, args=(om, ol, orad))[0] / H0y      #calculate at which time to place the scalefactor tick a
+        scaletickslocs.append(time)     #location of this scalefactor tick with respect to the time axis
+        scaletickslabs.append(round(a, 1))  #label of this scalefactor tick
+hubble_arr = H0kmsmpc * (adotinv(a_arr, om, ol, orad) / a_arr)**-1    #inverse due to the adotinv function being the reciprocal
+ax.plot(times, hubble_arr)
+ax.set_xlabel("Age of Universe (Gyr)"); ax.set_ylabel("Hubble Parameter (km/s/Mpc)")
+ax.axhline(y=H0kmsmpc,linestyle=':')
 ax.set_xlim(xmin=min(a_arr)); ax.set_ylim(ymin=0)
-fig.savefig(dir_path+'\\Part One Graphs\\Hubble Parameter vs Scalefactor.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
-fig.savefig(dir_path+'\\Part One Graphs\\Hubble Parameter vs Scalefactor.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
+
+mn, mx = ax.get_xlim()
+ax2.set_xlim(mn, mx)    #set top x-axis to have same width as bottom x-axis
+ax2.set_xticks(scaletickslocs); ax2.set_xticklabels(scaletickslabs)
+ax2.set_xlabel("Scalefactor ($a$)")
+fig.savefig(dir_path+'\\Part One Graphs\\Hubble Parameter vs Time.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
+fig.savefig(dir_path+'\\Part One Graphs\\Hubble Parameter vs Time.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 plt.close(fig)
 
 
@@ -208,7 +222,7 @@ xarr = np.zeros(len(zarr))
 axarr = np.zeros(len(zarr))
 for i, z in enumerate(zarr):
     xarr[i] = integrate.quad(Ez, 0, z, args=(om, ol, orad))[0] 
-    axarr[i] = (1 / (1 + z)) * integrate.quad(Ez, 0, z, args=(om, ol, orad))[0]
+    axarr[i] = (1 / (1 + z)) * integrate.quad(Ez, 0, z, args=(om, ol, orad))[0]     #this is effectively a * R0x - distance to light source seen at redshift z at time of light emission
     
 # Sub in the required constants to get the comoving distance R_0*X
 R0X = xarr * cH0Glyr # Distance in Glyr
@@ -224,7 +238,7 @@ plt.close(fig)
 
 fig, ax = plt.subplots()
 ax.plot(zarr,aR0X)
-ax.set_xlabel('Redshift ($z$)'); ax.set_ylabel('$aR_0\chi$ (Glyr)')
+ax.set_xlabel('Redshift ($z$)'); ax.set_ylabel('Light Emission Distance $aR_0\chi$ (Glyr)')
 ax.set_xlim(xmin=0); ax.set_ylim(ymin=0)
 fig.savefig(dir_path+'\\Part One Graphs\\Emission Distance vs Redshift.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Emission Distance vs Redshift.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
@@ -267,9 +281,9 @@ for i, a in enumerate(ScaleArr):
 ParticleHoriz = ParticleHoriz * cH0Glyr # Distance in Glyr
 EventHoriz = EventHoriz * cH0Glyr
 HubbleHoriz = HubbleHoriz * cH0Glyr
-Lightcone = np.array([integrate.quad(aadotinv, lower_limit, 1, args=(om,ol, orad))[0] for lower_limit in np.arange(0.001, 1, 0.001)]) * cH0Glyr
+Lightcone = np.array([integrate.quad(aadotinv, lower_limit, 1, args=(om,ol, orad))[0] for lower_limit in np.arange(0.001, 1, 0.001)]) * cH0Glyr     #light cone is only defined for a<=1
 
-w, h = plt.figaspect(0.333)
+w, h = plt.figaspect(0.333)  #aspect ratio of about 3:1 for width:height, so it's a nice, wide image
 fig, ax = plt.subplots(figsize=(w, h)); ax2 = ax.twinx()
 ParticleColour = 'g'; EventColour = 'r'; HubbleColour = '#307CC0'; LightColour = '#8F4F9F'; DarkColour = 'gray'
 
@@ -301,22 +315,21 @@ ax2.set_ylabel("Time (Gyr)")
 ax3 = ax.twiny()
 mn, mx = ax.get_xlim()
 ax3.set_xlabel("Redshift ($z$)")
-ax3.set_xlim(mn, mx)
+ax3.set_xlim(mn, mx)        #set redshift x-axis to be same width as comoving coord x-axis
 redshifts = np.array([0, 1, 2, 5, 10, 50, 1000])
 CoMovCoord = np.zeros(len(redshifts))
 for i, z in enumerate(redshifts):
-    CoMovCoord[i] = cH0Glyr * integrate.quad(Ez, 0, z, args=(om, ol, orad))[0]
-    ax3.axvline(CoMovCoord[i], linestyle=":", alpha=0.5, color=DarkColour)
-    ax3.axvline(-CoMovCoord[i], linestyle=":", alpha=0.5, color=DarkColour)
+    CoMovCoord[i] = cH0Glyr * integrate.quad(Ez, 0, z, args=(om, ol, orad))[0]      #calculates the comoving coord at which to put the redshift tick 
+    ax3.axvline(CoMovCoord[i], linestyle=":", alpha=0.5, color=DarkColour)      #puts a dotted vertical line at redshift z
+    ax3.axvline(-CoMovCoord[i], linestyle=":", alpha=0.5, color=DarkColour)     #as above but in the negative x-axis
 
 CoMovCoord = np.append(-CoMovCoord[::-1], CoMovCoord)
 redshifts = np.append(redshifts[::-1], redshifts)
 ax3.set_xticks(CoMovCoord); ax3.set_xticklabels(redshifts)
 
 #now to save the graph
-plt.fill_between(EventHoriz, mx * np.ones(len(ScaleArr)), ScaleArr, color=DarkColour, alpha=0.2)
-plt.fill_between(-EventHoriz, mx * np.ones(len(ScaleArr)), ScaleArr, color=DarkColour, alpha=0.2)
-
+plt.fill_between(EventHoriz, mx * np.ones(len(ScaleArr)), ScaleArr, color=DarkColour, alpha=0.2)    #colours in the area between a horizontal line high up and the event horizon
+plt.fill_between(-EventHoriz, mx * np.ones(len(ScaleArr)), ScaleArr, color=DarkColour, alpha=0.2)   #as above but on the negative x-axis
 fig.savefig(dir_path+'\\Part One Graphs\\Spacetime Diagram.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Spacetime Diagram.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 plt.close(fig)
