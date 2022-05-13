@@ -28,7 +28,7 @@ def hubble(a, om, ol, orad):
 
 def Ez(z, om, ol, orad):
     ok = 1 - om - ol - orad
-    Ez = np.sqrt(orad * (1 + z)**4 + om * (1 + z)**3 + ok * (1 + z)**2 + ol) # Put your code here!  This is not right until you change it.
+    Ez = np.sqrt(orad * (1 + z)**4 + om * (1 + z)**3 + ok * (1 + z)**2 + ol) 
     return 1 / Ez
 
 def Sk(xx, om, ol, orad):
@@ -191,9 +191,10 @@ for a in np.arange(0, amax + scalestep, scalestep):
         time = integrate.quad(adotinv, 0, a, args=(om, ol, orad))[0] / H0y      #calculate at which time to place the scalefactor tick a
         scaletickslocs.append(time)     #location of this scalefactor tick with respect to the time axis
         scaletickslabs.append(round(a, 1))  #label of this scalefactor tick
-hubble_arr = H0kmsmpc * (adotinv(a_arr, om, ol, orad) / a_arr)**-1    #inverse due to the adotinv function being the reciprocal
+hubble_arr = H0kmsmpc * (adotinv(a_arr, om, ol, orad) * a_arr)**-1    #inverse due to the adotinv function being the reciprocal
 ax.plot(times, hubble_arr)
 ax.set_xlabel("Age of Universe (Gyr)"); ax.set_ylabel("Hubble Parameter (km/s/Mpc)")
+ax.set_yscale('log')
 ax.axhline(y=H0kmsmpc,linestyle=':')
 ax.set_xlim(xmin=min(a_arr)); ax.set_ylim(ymin=0)
 

@@ -16,10 +16,10 @@ H0kmsmpc = 70.  # Hubble constant in km/s/Mpc
 H0s = H0kmsmpc * 3.2408e-20 # H0 in inverse seconds is H0 in km/s/Mpc * (3.2408e-20 Mpc/km)
 
 # Write a function for the integrand, i.e. $1/E(z)$,
-def ezinv(z,om=0.3,ol=0.7,w0=-1.0,wa=0.0,orr=0.0):
-    ok = 1.-om-ol-orr
-    ez = 1.0  ############# REPLACE THIS WITH YOUR CODE ################
-    return 1./ez
+def ezinv(z, om=0.3, ol=0.7, w0=-1.0, wa=0.0, orad=0.0):
+    ok = 1 - om - ol - orad
+    ez = np.sqrt(orad * (1 + z)**4 + om * (1 + z)**3 + ok * (1 + z)**2 + ol) 
+    return 1 / ez
 
 # The curvature correction function
 def Sk(xx, ok):
@@ -51,7 +51,8 @@ def read_data(model_name):
     muerr=d[:, 2]
     return zs, mu, muerr
 
-zs, mu, muerr = read_data('Data0')
+dataset = "Data0"
+zs, mu, muerr = read_data(dataset)
 
 # Plot it to see what it looks like, this is called a Hubble diagram
 plt.errorbar(zs, mu, yerr=muerr, fmt='.', elinewidth=0.7, markersize=4, alpha=0.5)
@@ -65,28 +66,6 @@ mu_om10_ox00 = dist_mod(zs,om=1.0,ol=0.0)
 mu_om03_ox00 = dist_mod(zs,om=0.3,ol=0.0)
 mu_om03_ox07 = dist_mod(zs,om=0.3,ol=0.7)
 
-# Plot it to see what it looks like, this is called a Hubble diagram
-plt.errorbar(zs,mu,yerr=muerr,fmt='.',elinewidth=0.7,markersize=4,alpha=0.5)
-plt.plot(zs,mu_om10_ox00,'-.',color='red',label='(1.0, 0.0)')
-plt.plot(zs,mu_om03_ox00,'--',color='blue',label='(0.3, 0.0)')
-plt.plot(zs,mu_om03_ox07,'-',color='green',label='(0.3, 0.7)')
-plt.xlim(0,1.0)
-plt.xlabel('redshift')
-plt.ylabel('magnitude')
-plt.legend(frameon=False)
-plt.show()
-
-# Now plot a Hubble diagram relative to the empty model (i.e. subtract the empty model from all the data and models)
-plt.errorbar(zs,mu-mu_om00_ox00,yerr=muerr,fmt='.',elinewidth=0.7,markersize=4,alpha=0.5)
-plt.plot(zs,mu_om10_ox00-mu_om00_ox00,'-.',color='red',label='(1.0, 0.0)')
-plt.plot(zs,mu_om03_ox00-mu_om00_ox00,'--',color='blue',label='(0.3, 0.0)')
-plt.plot(zs,mu_om03_ox07-mu_om00_ox00,'-',color='green',label='(0.3, 0.7)')
-plt.axhline(y=0.0,ls=':',color='black')
-plt.xlim(0,1.0)
-plt.xlabel('redshift')
-plt.ylabel('magnitude normalised to (0,0)')
-plt.legend(frameon=False)
-plt.show()
 
 # Calculate mscript for each of these, which is the thing that determines the vertical normalisation 
 mscr_om10_ox00 = np.sum((mu_om10_ox00-mu)/muerr**2)/np.sum(1./muerr**2)
@@ -111,21 +90,21 @@ plt.ylabel('magnitude')
 plt.legend(frameon=False)
 plt.show()
 
-# Now plot a Hubble diagram relative to the empty model (i.e. subtract the empty model from all the data and models)
-plt.errorbar(zs,mu-mu_om00_ox00,yerr=muerr,fmt='.',elinewidth=0.7,markersize=4,alpha=0.5)
-plt.plot(zs,mu_om10_ox00-mu_om00_ox00,'-.',color='red',label='(1.0, 0.0)')
-plt.plot(zs,mu_om03_ox00-mu_om00_ox00,'--',color='blue',label='(0.3, 0.0)')
-plt.plot(zs,mu_om03_ox07-mu_om00_ox00,'-',color='green',label='(0.3, 0.7)')
-plt.axhline(y=0.0,ls=':',color='black')
-plt.xlim(0,1.0)
-plt.xlabel('redshift')
-plt.ylabel('magnitude normalised to (0,0)')
-plt.legend(frameon=False)
-plt.show()
+# # Now plot a Hubble diagram relative to the empty model (i.e. subtract the empty model from all the data and models)
+# plt.errorbar(zs,mu-mu_om00_ox00,yerr=muerr,fmt='.',elinewidth=0.7,markersize=4,alpha=0.5)
+# plt.plot(zs,mu_om10_ox00-mu_om00_ox00,'-.',color='red',label='(1.0, 0.0)')
+# plt.plot(zs,mu_om03_ox00-mu_om00_ox00,'--',color='blue',label='(0.3, 0.0)')
+# plt.plot(zs,mu_om03_ox07-mu_om00_ox00,'-',color='green',label='(0.3, 0.7)')
+# plt.axhline(y=0.0,ls=':',color='black')
+# plt.xlim(0,1.0)
+# plt.xlabel('redshift')
+# plt.ylabel('magnitude normalised to (0,0)')
+# plt.legend(frameon=False)
+# plt.show()
 
 # Set up the arrays for the models you want to test, e.g. a range of Omega_m and Omega_Lambda models:
-n = 21                          # Increase this for a finer grid
-oms = np.linspace(0.0, 0.5, n)   # Array of matter densities
+n = 30                       # Increase this for a finer grid
+oms = np.linspace(0.0, 1, n)   # Array of matter densities
 ols = np.linspace(0.0, 1.0, n)   # Array of cosmological constant values
 chi2 = np.ones((n, n)) * np.inf  # Array to hold our chi2 values, set initially to super large values
 
@@ -147,12 +126,33 @@ ibest   = np.unravel_index(indbest,[n,n]) # Converts the best fit index to the 2
 print( 'Best fit values are (om,ol)=(%.3f,%.3f)'%( oms[ibest[0]], ols[ibest[1]] ) )
 print( 'Reduced chi^2 for the best fit is %0.2f'%chi2_reduced[ibest[0],ibest[1]] )
 
+mu_omModel_oxModel = dist_mod(zs,om=oms[ibest[0]],ol=ols[ibest[1]])
+#mscr_om10_ox00 = np.sum((mu_om10_ox00-mu)/muerr**2)/np.sum(1./muerr**2)
+# Now plot a Hubble diagram relative to the empty model (i.e. subtract the empty model from all the data and models)
+fig, ax = plt.subplots()
+ax.errorbar(zs,mu-mu_om00_ox00,yerr=muerr,fmt='.',elinewidth=0.7,markersize=4,alpha=0.5)
+ax.plot(zs,mu_om10_ox00-mu_om00_ox00,'-.',color='red',label='(1.0, 0.0)')
+ax.plot(zs,mu_om03_ox00-mu_om00_ox00,'--',color='blue',label='(0.3, 0.0)')
+ax.plot(zs,mu_om03_ox07-mu_om00_ox00,'-',color='green',label='(0.3, 0.7)')
+ax.plot(zs, mu_omModel_oxModel - mu_om00_ox00, '-', color='k', label=f'({oms[ibest[0]]:.2f}, {ols[ibest[1]]:.2f})')
+ax.axhline(y=0.0,ls=':',color='black')
+ax.set_xlim(0,1.0)
+ax.set_xlabel('redshift'); ax.set_ylabel('magnitude normalised to (0,0)')
+ax.legend(frameon=False)
+fig.savefig('Part Two Graphs/Norm Mag vs Redshift.png', dpi=200, bbox_inches='tight', pad_inches = 0.01, transparent=False)
+fig.savefig('Part Two Graphs/Norm Mag vs Redshift.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01, transparent=False)
+plt.close(fig)
+
+
+
 # Plot contours of 1, 2, and 3 sigma
-plt.contour(oms,ols,np.transpose(chi2-np.amin(chi2)),cmap="winter",**{'levels':[2.30,6.18,11.83]})
-plt.plot(oms[ibest[0]], ols[ibest[1]],'x',color='black',label='(om,ol)=(%.3f,%.3f)'%( oms[ibest[0]], ols[ibest[1]]) )
-plt.xlabel("$\Omega_m$", fontsize=12)
-plt.ylabel("$\Omega_\Lambda$", fontsize=12)
-plt.plot([oms[0],oms[1]], [ols[0],ols[1]],'-',color='black',label='Step size indicator' ) # Delete this line after making step size smaller!
-plt.legend(frameon=False)
-#plt.savefig('plots/contours.png', bbox_inches="tight", transparent=True)
-plt.show()
+fig, ax = plt.subplots()
+ax.contour(oms,ols,np.transpose(chi2-np.amin(chi2)),cmap="winter",**{'levels':[2.30,6.18,11.83]})
+ax.plot(oms[ibest[0]], ols[ibest[1]],'x',color='black',label='(om,ol)=(%.3f,%.3f)'%( oms[ibest[0]], ols[ibest[1]]) )
+ax.set_xlabel("$\Omega_m$", fontsize=12)
+ax.set_ylabel("$\Omega_\Lambda$", fontsize=12)
+ax.plot([oms[0],oms[1]], [ols[0],ols[1]],'-',color='black',label='Step size indicator' ) # Delete this line after making step size smaller!
+ax.legend(frameon=False)
+fig.savefig(f'Part Two Graphs/{dataset} contours.png', dpi=200, bbox_inches='tight', pad_inches = 0.01, transparent=False)
+fig.savefig(f'Part Two Graphs/{dataset} contours.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01, transparent=False)
+plt.close(fig)
