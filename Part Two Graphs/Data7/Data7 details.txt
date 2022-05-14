@@ -1,0 +1,4 @@
+The sample size of parameters tested was (om, ol, orad, w0, wa) = (21, 21, 5, 5, 5)
+The total number of models compared are 55125
+Best fit values are (om, ol, orad, w0, wa)=(0.300, 1.000, 0.000, -1.000, 0.250)
+Reduced chi^2 for the best fit is 0.71
