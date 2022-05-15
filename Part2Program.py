@@ -21,8 +21,17 @@ H0s = H0kmsmpc * 3.2408e-20 # H0 in inverse seconds is H0 in km/s/Mpc * (3.2408e
 def ezinv(z, om=0.3, ol=0.7, w0=-1.0, wa=0.0, orad=0.0):
     ok = 1 - om - ol - orad
     wDarkEnergy = 3 * (1 + w0 + wa * (1 - (1 / (1 + z))))
-    ez = np.sqrt(orad * (1 + z)**4 + om * (1 + z)**3 + ok * (1 + z)**2 + ol * (1 + z)**wDarkEnergy) 
-    return 1 / ez
+    if ol <=0 and wDarkEnergy%1 != 0:
+        return 1
+    else:
+        inside = orad * (1 + z)**4 + om * (1 + z)**3 + ok * (1 + z)**2 + ol * (1 + z)**wDarkEnergy
+        if inside < 0:
+            return 1
+        else:
+            ez = np.sqrt(inside) 
+            return 1 / ez
+    
+    
 
 # The curvature correction function
 def Sk(xx, ok):
@@ -76,32 +85,48 @@ for dataset in datasets:
     mu_om03_ox07 = dist_mod(zs, om=0.3, ol=0.7)
     
     
+    method = "Simple"       #simple is quickest compute time. Change to something else for a more comprehensive fit
     # Set up the arrays for the models you want to test, e.g. a range of Omega_m and Omega_Lambda models:
     #be careful increasing n and nSmall! Compute time increases as n^2 * nSmall^3
-    n = 28                  # Increase this for a finer grid.
-    nSmall = 9
+    n = 35                  # Increase this for a finer grid.
+    nSmall = 10
     nTiny = 2
-    ols = np.linspace(0, 1.3, n)   # Array of cosmological constant values
-    if dataset in ["Data00", "Data0", "Data1", "Data2", "Data3"]:
-        #the above datasets are computed according to simple models, and so the compute time can be reduced by reducing the sample space
-        oms = np.linspace(0, 1, n)   # Array of matter densities
-        orads = [0]     #data sets have orad = 0
-        w0_array = [-1]     #data sets have w0 = -1
-        wa_array = [0]      #data sets have wa = 0
-    else:           
-        oms = np.linspace(0, 2, n)   # Array of matter densities
-        orads = np.linspace(0, 1, nSmall)    # Array of radiation density values
-        if nTiny == 2:
-            w0_array = np.array([-1, 0])
+    ols = np.linspace(-0.6, 1.3, n)   # Array of cosmological constant values
+    #the above datasets are computed according to simple models, and so the compute time can be reduced by reducing the sample space
+    if method == "Simple":
+        # conditionals for simple array were found by trial and error during comprehensive trials
+        if dataset in ["Data00", "Data0", "Data1", "Data2", "Data3"]:
+            oms = np.linspace(0, 1, n)   # Array of matter densities
+            w0_array = [-1]              # data sets have w0 = -1 
         else:
+            oms = np.linspace(0, 2, n)               # Array of matter densities
             w0_array = np.linspace(-1, 0, nTiny)    # Array of Dark Energy Equation of state, w0
-        wa_array = np.linspace(0, 2, nSmall)     # Array of change of Dark energy equation of state, wa
+        if dataset == "Data6":
+            orads = np.linspace(0, 1, nSmall)         # Array of radiation density values
+        else:
+            orads = [0]                  # data sets have orad = 0
+        if dataset in ["Data4", "Data5"]:
+            wa_array = np.linspace(0, 2, nSmall)     # Array of change of Dark energy equation of state, wa
+        else:
+            wa_array = [0]               # data sets have wa = 0
+    else:
+        if dataset in ["Data00", "Data0", "Data1", "Data2", "Data3"]:
+            #the above datasets are computed according to simple models, and so the compute time can be reduced by reducing the sample space
+            oms = np.linspace(0, 1, n)   # Array of matter densities
+            orads = [0]     #data sets have orad = 0
+            w0_array = [-1]     #data sets have w0 = -1
+            wa_array = [0]      #data sets have wa = 0
+        else:           
+            oms = np.linspace(0, 2, n)   # Array of matter densities
+            orads = np.linspace(0, 1, nSmall)    # Array of radiation density values
+            w0_array = np.linspace(-1, 0, nTiny)    # Array of Dark Energy Equation of state, w0
+            wa_array = np.linspace(0, 2, nSmall)     # Array of change of Dark energy equation of state, wa
         
     chi2 = np.ones((len(oms), len(ols), len(orads), len(w0_array), len(wa_array))) * np.inf  # Array to hold our chi2 values, set initially to super large values
-    print("Number of parameter samples iterated over = ", n**2 * nSmall**2 * nTiny)
+    print("Number of parameter samples iterated over = ", len(oms) * len(ols) * len(orads) * len(w0_array) * len(wa_array))
     
     # Calculate Chi2 for each model
-    for i, om in enumerate(oms):            # loop through matter densities   
+    for i, om in enumerate(oms):                # loop through matter densities   
         print(i, "/", n, "complete.")                                         
         for j, ol in enumerate(ols):            # loop through cosmological constant densities
             for k, orad in enumerate(orads):                           
@@ -111,9 +136,10 @@ for dataset in datasets:
                         mscr = np.sum((mu_model - muReduced) / muerrReduced**2) / np.sum(1 / muerrReduced**2) # Calculate the vertical offset to apply
                         mu_model_norm = mu_model - mscr         # Apply the vertical offset
                         chi2[i, j, k, l, m] = np.sum((mu_model_norm - muReduced)**2 / muerrReduced**2)  # Calculate the chi2 and save it in a matrix
+
                 
     # Convert that to a likelihood and calculate the reduced chi2
-    likelihood = np.exp(-0.5 * (chi2 - np.amin(chi2)))      # convert the chi^2 to a likelihood (np.amin(chi2) calculates the minimum of the chi^2 array)
+    likelihood = np.exp(-0.5 * (chi2 - np.amin(chi2)))        # convert the chi^2 to a likelihood (np.amin(chi2) calculates the minimum of the chi^2 array)
     chi2_reduced = chi2 / (len(muReduced) - 2)                # calculate the reduced chi^2, i.e. chi^2 per degree of freedom, where dof = number of data points minus number of parameters being fitted 
     
     # Calculate the best fit values (where chi2 is minimum)

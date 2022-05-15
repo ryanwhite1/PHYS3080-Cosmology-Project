@@ -1,4 +1,4 @@
-The sample size of parameters tested was (om, ol, orad, w0, wa) = (28, 28, 9, 9, 9)
-The total number of models compared are 127008
-Best fit values are (om, ol, orad, w0, wa)=(0.815, 0.193, 0.000, -1.000, 0.000)
+The sample size of parameters tested was (om, ol, orad, w0, wa) = (28, 28, 10, 10, 10)
+The total number of models compared are 156800
+Best fit values are (om, ol, orad, w0, wa)=(0.815, 0.230, 0.000, -1.000, 0.222)
 Reduced chi^2 for the best fit is 1.00
