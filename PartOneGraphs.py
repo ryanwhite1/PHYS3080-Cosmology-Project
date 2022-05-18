@@ -127,8 +127,8 @@ plt.close(fig)
 
 
 fig, ax = plt.subplots()
-redshift = -1 + (1 / a_arr)         #this is the formula for z in terms of a
-ax.plot(a_arr, redshift)
+redshift = -1 + (1 / a_arr[1:])         #this is the formula for z in terms of a
+ax.plot(a_arr[1:], redshift)
 ax.set_xlabel("Scalefactor ($a$)"); ax.set_ylabel("Redshift ($z$)")
 fig.savefig(dir_path+'\\Part One Graphs\\Redshift vs Scalefactor.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Redshift vs Scalefactor.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
@@ -152,6 +152,7 @@ plt.close(fig)
 
 minlog, maxlog = -6, 2
 a_arr = np.logspace(minlog, maxlog, num=100, base=10)
+ok = 1 - orad - om - ol
 norm_om = (om * a_arr**-3) / ((om * a_arr**-3) + (orad * a_arr**-4) + ol)       #normalised mass density, om / otot
 norm_orad = (orad * a_arr**-4) / ((om * a_arr**-3) + (orad * a_arr**-4) + ol)   #normalised radiation density, orad / otot
 norm_ol = ol / ((om * a_arr**-3) + (orad * a_arr**-4) + ol)                     #normalised cosmo constant, ol / otot
@@ -167,7 +168,23 @@ ax.xaxis.set_minor_locator(matplotlib.ticker.LogLocator(base=10.0,subs=(0.2,0.4,
 ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter()) #this removes labels from the minor ticks
 ax.set_xlabel("Scalefactor ($a$)"); ax.set_ylabel("Normalised Density ($\Omega_i / \Omega_{tot}$)")
 ax.legend(loc='center right')
-ax.set_ylim(ymin=-0.003); ax.set_xlim(min(a_arr), max(a_arr))   #sets ylim just below 0 so that you can see the bottom of the curves properly
+ax.set_ylim(ymin=-0.003, ymax=1.003); ax.set_xlim(min(a_arr), max(a_arr))   #sets ylim just below 0 so that you can see the bottom of the curves properly
+
+ax2 = ax.twiny()
+ax2.set_xscale("log")
+locs = ax.get_xticks()[1:-1]
+print(locs)
+# ax2.ticklabel_format(axis='x', style='sci', useMathText=True)
+ax2ticks = []
+for i, tick in enumerate(locs):
+    if tick > 1:
+        ax2ticks.append("")
+    else:
+        ax2ticks.append(str("$10^{" + str(round(np.log10(1/tick))) + "}$")) #calculates the time associated with scale factor of a=tick
+mn, mx = ax.get_xlim(); ax2.set_xlim(mn, mx)
+ax2.set_xticks(locs); ax2.set_xticklabels(ax2ticks)
+ax2.set_xlabel("Redshift ($z$)")
+
 fig.savefig(dir_path+'\\Part One Graphs\\Normalised Densities vs Scalefactor.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Normalised Densities vs Scalefactor.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 plt.close(fig)
@@ -196,7 +213,7 @@ ax.plot(times, hubble_arr)
 ax.set_xlabel("Age of Universe (Gyr)"); ax.set_ylabel("Hubble Parameter (km/s/Mpc)")
 ax.set_yscale('log')
 ax.axhline(y=H0kmsmpc,linestyle=':')
-ax.set_xlim(xmin=min(a_arr)); ax.set_ylim(ymin=0)
+ax.set_xlim(xmin=min(a_arr))
 
 mn, mx = ax.get_xlim()
 ax2.set_xlim(mn, mx)    #set top x-axis to have same width as bottom x-axis

@@ -7,6 +7,7 @@ Created on Fri May 13 09:19:26 2022
 
 # First let's set up our packages
 import numpy as np
+import corner
 from matplotlib import pyplot as plt
 from scipy import integrate
 
@@ -21,18 +22,13 @@ H0s = H0kmsmpc * 3.2408e-20 # H0 in inverse seconds is H0 in km/s/Mpc * (3.2408e
 def ezinv(z, om=0.3, ol=0.7, w0=-1.0, wa=0.0, orad=0.0):
     ok = 1 - om - ol - orad
     wDarkEnergy = 3 * (1 + w0 + wa * (1 - (1 / (1 + z))))
-    if ol <=0 and wDarkEnergy%1 != 0:
+    inside = orad * (1 + z)**4 + om * (1 + z)**3 + ok * (1 + z)**2 + ol * (1 + z)**wDarkEnergy
+    if inside < 0:
         return 1
     else:
-        inside = orad * (1 + z)**4 + om * (1 + z)**3 + ok * (1 + z)**2 + ol * (1 + z)**wDarkEnergy
-        if inside < 0:
-            return 1
-        else:
-            ez = np.sqrt(inside) 
-            return 1 / ez
+        ez = np.sqrt(inside) 
+        return 1 / ez
     
-    
-
 # The curvature correction function
 def Sk(xx, ok):
     if ok < 0.0:
@@ -63,7 +59,7 @@ def read_data(model_name):
     muerr=d[:, 2]
     return zs, mu, muerr
 
-runall = "Yes"      #change this if you want to run just one dataset
+runall = "n"      #change this if you want to run just one dataset
 
 if runall == "Yes":
     datasets = ["Data00", "Data0", "Data1", "Data2", "Data3", "Data4", "Data5", "Data6", "Data7"]
@@ -84,43 +80,24 @@ for dataset in datasets:
     mu_om03_ox00 = dist_mod(zs, om=0.3, ol=0.0)
     mu_om03_ox07 = dist_mod(zs, om=0.3, ol=0.7)
     
-    
-    method = "Simple"       #simple is quickest compute time. Change to something else for a more comprehensive fit
     # Set up the arrays for the models you want to test, e.g. a range of Omega_m and Omega_Lambda models:
     #be careful increasing n and nSmall! Compute time increases as n^2 * nSmall^3
-    n = 35                  # Increase this for a finer grid.
-    nSmall = 10
-    nTiny = 2
+    n = 10                  # Increase this for a finer grid.
+    nSmall = 6
+    nTiny = 4
     ols = np.linspace(-0.6, 1.3, n)   # Array of cosmological constant values
     #the above datasets are computed according to simple models, and so the compute time can be reduced by reducing the sample space
-    if method == "Simple":
-        # conditionals for simple array were found by trial and error during comprehensive trials
-        if dataset in ["Data00", "Data0", "Data1", "Data2", "Data3"]:
-            oms = np.linspace(0, 1, n)   # Array of matter densities
-            w0_array = [-1]              # data sets have w0 = -1 
-        else:
-            oms = np.linspace(0, 2, n)               # Array of matter densities
-            w0_array = np.linspace(-1, 0, nTiny)    # Array of Dark Energy Equation of state, w0
-        if dataset == "Data6":
-            orads = np.linspace(0, 1, nSmall)         # Array of radiation density values
-        else:
-            orads = [0]                  # data sets have orad = 0
-        if dataset in ["Data4", "Data5"]:
-            wa_array = np.linspace(0, 2, nSmall)     # Array of change of Dark energy equation of state, wa
-        else:
-            wa_array = [0]               # data sets have wa = 0
-    else:
-        if dataset in ["Data00", "Data0", "Data1", "Data2", "Data3"]:
-            #the above datasets are computed according to simple models, and so the compute time can be reduced by reducing the sample space
-            oms = np.linspace(0, 1, n)   # Array of matter densities
-            orads = [0]     #data sets have orad = 0
-            w0_array = [-1]     #data sets have w0 = -1
-            wa_array = [0]      #data sets have wa = 0
-        else:           
-            oms = np.linspace(0, 2, n)   # Array of matter densities
-            orads = np.linspace(0, 1, nSmall)    # Array of radiation density values
-            w0_array = np.linspace(-1, 0, nTiny)    # Array of Dark Energy Equation of state, w0
-            wa_array = np.linspace(0, 2, nSmall)     # Array of change of Dark energy equation of state, wa
+    if dataset in ["Data00", "Data0", "Data1", "Data2", "Data3"]:
+        #the above datasets are computed according to simple models, and so the compute time can be reduced by reducing the sample space
+        oms = np.linspace(0, 1, n)   # Array of matter densities
+        orads = [0]     #data sets have orad = 0
+        w0_array = [-1]     #data sets have w0 = -1
+        wa_array = [0]      #data sets have wa = 0
+    else:           
+        oms = np.linspace(0, 2, n)   # Array of matter densities
+        orads = np.linspace(0, 1, nSmall)    # Array of radiation density values
+        w0_array = np.linspace(-1, 0, nTiny)    # Array of Dark Energy Equation of state, w0
+        wa_array = np.linspace(0, 2, nSmall)     # Array of change of Dark energy equation of state, wa
         
     chi2 = np.ones((len(oms), len(ols), len(orads), len(w0_array), len(wa_array))) * np.inf  # Array to hold our chi2 values, set initially to super large values
     print("Number of parameter samples iterated over = ", len(oms) * len(ols) * len(orads) * len(w0_array) * len(wa_array))
@@ -196,18 +173,21 @@ for dataset in datasets:
     
     # Plot contours of 1, 2, and 3 sigma
     fig, ax = plt.subplots()
-    contourMatrix = np.transpose((chi2 - np.amin(chi2))[:, :, 0, 0, 0]) #removes all but the first two dimensions (om & ol respectively)
-    likelihoodPlot = ax.contour(oms, ols, contourMatrix, cmap="copper", **{'levels':[2.30,6.18,11.83]})
-    #ax.clabel(likelihoodPlot, likelihoodPlot.levels, inline=True, fontsize=4)      #puts the labels on the contour lines
-    labels = ["1 $\sigma$ Likelihood", "2 $\sigma$ Likelihood", "3 $\sigma$ Likelihood"]
-    for i in range(len(labels)):        #this makes a label on the axis for each of the contour lines
-        likelihoodPlot.collections[i].set_label(labels[i])
+    samples = len(oms) * len(ols) * len(orads) * len(w0_array) * len(wa_array)
+    data = chi2.reshape(samples, 5)
+    cornerplot = corner.corner(data, labels=["om", "ol", "orad", "w0", "wa"], quantiles=[0.16, 0.5, 0.84], show_titles=True)
+    # contourMatrix = np.transpose((chi2 - np.amin(chi2))[:, :, 0, 0, 0]) #removes all but the first two dimensions (om & ol respectively)
+    # likelihoodPlot = ax.contour(oms, ols, contourMatrix, cmap="copper", **{'levels':[2.30,6.18,11.83]})
+    # #ax.clabel(likelihoodPlot, likelihoodPlot.levels, inline=True, fontsize=4)      #puts the labels on the contour lines
+    # labels = ["1 $\sigma$ Likelihood", "2 $\sigma$ Likelihood", "3 $\sigma$ Likelihood"]
+    # for i in range(len(labels)):        #this makes a label on the axis for each of the contour lines
+    #     likelihoodPlot.collections[i].set_label(labels[i])
     # ax.plot(oms[ibest[0]], ols[ibest[1]], 'x', color='black', label='(om,ol)=(%.3f,%.3f)'%(oms[ibest[0]], ols[ibest[1]]))
-    ax.errorbar(oms[ibest[0]], ols[ibest[1]], xerr=(oms[1]-oms[0]), yerr=(ols[1]-ols[0]), fmt='x', color='#307CC0', elinewidth=1, label='($\Omega_m$, $\Omega_\Lambda$)=(%.3f, %.3f)'%(oms[ibest[0]], ols[ibest[1]]))
-    ax.set_xlabel("$\Omega_m$", fontsize=12); ax.set_ylabel("$\Omega_\Lambda$", fontsize=12)
-    ax.set_xlim(min(oms), max(oms)); ax.set_ylim(min(ols), max(ols))
-    #ax.plot([oms[0], oms[1]], [ols[0], ols[1]], '-', color='black', label='Step size indicator' ) # Delete this line after making step size smaller!
-    ax.legend(loc='best', frameon=True)
+    # ax.errorbar(oms[ibest[0]], ols[ibest[1]], xerr=(oms[1]-oms[0]), yerr=(ols[1]-ols[0]), fmt='x', color='#307CC0', elinewidth=1, label='($\Omega_m$, $\Omega_\Lambda$)=(%.3f, %.3f)'%(oms[ibest[0]], ols[ibest[1]]))
+    # ax.set_xlabel("$\Omega_m$", fontsize=12); ax.set_ylabel("$\Omega_\Lambda$", fontsize=12)
+    # ax.set_xlim(min(oms), max(oms)); ax.set_ylim(min(ols), max(ols))
+    # #ax.plot([oms[0], oms[1]], [ols[0], ols[1]], '-', color='black', label='Step size indicator' ) # Delete this line after making step size smaller!
+    # ax.legend(loc='best', frameon=True)
     fig.savefig(f'Part Two Graphs/{dataset}/{dataset} contours.png', dpi=200, bbox_inches='tight', pad_inches = 0.01, transparent=False)
     fig.savefig(f'Part Two Graphs/{dataset}/{dataset} contours.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01, transparent=False)
     plt.close(fig)

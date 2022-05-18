@@ -1,0 +1,5 @@
+The program ran with 20 over 500 iterations.
+This corresponds to effectively 10000 models sampled.
+Best fit values are (om, ol, orad, w0, wa)=(0.218, 0.493, 0.000, -1.000, 0.000)
+Reduced chi^2 for the best fit is 1.15
+ and the Chi^2 value is 110.16
