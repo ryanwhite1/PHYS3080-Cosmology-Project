@@ -1,5 +1,8 @@
-The program ran with 20 over 500 iterations.
-This corresponds to effectively 10000 models sampled.
-Best fit values are (om, ol, orad, w0, wa)=(0.119, 0.611, 0.000, -1.000, 0.000)
-Reduced chi^2 for the best fit is 1.15
- and the Chi^2 value is 110.16
+The program ran with 50 walkers over 1000 iterations.
+This corresponds to effectively 50000 models sampled.
+The mean value of each parameter is (om, ol, orad, w0, wa)=(0.109, 0.510, 0.000, -1.000, 0.000)
+The maximum likelihood value of each parameter is (om, ol, orad, w0, wa)=(0.000, 0.409, 0.000, -1.000, 0.000)
+The plot fit values are (om, ol, orad, w0, wa)=(0.109, 0.510, 0.000, -1.000, 0.000)
+and the best fit values are (om, ol, orad, w0, wa)=(0.046, 0.399, 0.000, -1.000, 0.000)
+The Reduced chi^2 for the plot fit is 1.01
+and the Chi^2 value is 47.27

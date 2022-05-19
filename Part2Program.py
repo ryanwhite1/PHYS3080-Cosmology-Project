@@ -85,7 +85,7 @@ for dataset in datasets:
     n = 10                  # Increase this for a finer grid.
     nSmall = 6
     nTiny = 4
-    ols = np.linspace(-0.6, 1.3, n)   # Array of cosmological constant values
+    ols = np.linspace(0, 1, n)   # Array of cosmological constant values
     #the above datasets are computed according to simple models, and so the compute time can be reduced by reducing the sample space
     if dataset in ["Data00", "Data0", "Data1", "Data2", "Data3"]:
         #the above datasets are computed according to simple models, and so the compute time can be reduced by reducing the sample space
@@ -94,10 +94,10 @@ for dataset in datasets:
         w0_array = [-1]     #data sets have w0 = -1
         wa_array = [0]      #data sets have wa = 0
     else:           
-        oms = np.linspace(0, 2, n)   # Array of matter densities
+        oms = np.linspace(0, 1, n)   # Array of matter densities
         orads = np.linspace(0, 1, nSmall)    # Array of radiation density values
-        w0_array = np.linspace(-1, 0, nTiny)    # Array of Dark Energy Equation of state, w0
-        wa_array = np.linspace(0, 2, nSmall)     # Array of change of Dark energy equation of state, wa
+        w0_array = np.linspace(-2, 0, nTiny)    # Array of Dark Energy Equation of state, w0
+        wa_array = np.linspace(-1.5, 0.5, nSmall)     # Array of change of Dark energy equation of state, wa
         
     chi2 = np.ones((len(oms), len(ols), len(orads), len(w0_array), len(wa_array))) * np.inf  # Array to hold our chi2 values, set initially to super large values
     print("Number of parameter samples iterated over = ", len(oms) * len(ols) * len(orads) * len(w0_array) * len(wa_array))
