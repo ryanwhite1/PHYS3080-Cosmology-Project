@@ -1,0 +1,2 @@
+[['Data00', 'yes'], ['Data0', 'yes'], ['Data1', 'yes'], ['Data2', 'yes'], ['Data3', 'yes'], ['Data4', 'yes'], ['Data5', 'yes'], ['Data6', 'yes'], ['Data7', 'yes']]
+[['Data00', 13.47], ['Data0', 12.93], ['Data1', 12.13], ['Data2', 10.51], ['Data3', 14.58], ['Data4', 9.35], ['Data5', 7.85], ['Data6', 12.53], ['Data7', 12.91]]

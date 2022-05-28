@@ -61,7 +61,7 @@ def read_data(model_name):
     d = np.genfromtxt('SNe Data/' + model_name+'.txt', delimiter=',')
     zs = d[:, 0]
     mu = d[:, 1]
-    muerr=d[:, 2]
+    muerr = d[:, 2]
     return zs, mu, muerr
 
 def model(params, zs=None, mu=None, muerr=None):
