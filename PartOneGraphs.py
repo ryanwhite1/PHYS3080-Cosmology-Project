@@ -126,11 +126,12 @@ plt.close(fig)
 
 
 
-ages = np.array([[integrate.quad(adotinv, 0, 1, args=(OM, OL, orad))[0] / H0y for OL in ol_arr] for OM in om_arr])
+om_arr = np.arange(0, 1, 0.02); ol_arr = np.arange(0, 1.5, 0.02)
+ages = np.array([[integrate.quad(adotinv, 0, 1, args=(OM, OL, orad))[0] / H0y for OM in om_arr] for OL in ol_arr])
 fig, ax = plt.subplots()
-age = ax.contourf(ol_arr, om_arr, ages)
-ax.colorbar()
-ax.set_xlabel("$\Omega_\Lambda$"); ax.set_ylabel("$\Omega_m$")
+age = ax.pcolormesh(om_arr, ol_arr, ages)
+plt.colorbar(age, orientation='vertical', label="Age of Universe (Gyr)")
+ax.set_xlabel("$\Omega_m$"); ax.set_ylabel("$\Omega_\Lambda$")
 fig.savefig(dir_path+'\\Part One Graphs\\Age of Universe vs Parameter Value 2.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Age of Universe vs Parameter Value 2.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 plt.close(fig)
