@@ -126,6 +126,17 @@ plt.close(fig)
 
 
 
+ages = np.array([[integrate.quad(adotinv, 0, 1, args=(OM, OL, orad))[0] / H0y for OL in ol_arr] for OM in om_arr])
+fig, ax = plt.subplots()
+age = ax.contourf(ol_arr, om_arr, ages)
+ax.colorbar()
+ax.set_xlabel("$\Omega_\Lambda$"); ax.set_ylabel("$\Omega_m$")
+fig.savefig(dir_path+'\\Part One Graphs\\Age of Universe vs Parameter Value 2.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
+fig.savefig(dir_path+'\\Part One Graphs\\Age of Universe vs Parameter Value 2.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)
+plt.close(fig)
+
+
+
 fig, ax = plt.subplots()
 redshift = -1 + (1 / a_arr[1:])         #this is the formula for z in terms of a
 ax.plot(a_arr[1:], redshift)
