@@ -100,7 +100,7 @@ def lnprior0(params):
     The given priors in this function should not be changed, and were defined by Tamara Davis"""
     if len(params) == 2:    #the below priors are for datasets 00 to 3 only. Since they're simple models, they only have two parameters
         om, ol = params
-        if (om == 0.3) and (0 <= ol <= 1):
+        if 0.25 <= om <= 0.35 and (0 <= ol <= 1):
             return 0.0      
         else:
             return -np.inf
@@ -112,7 +112,7 @@ def lnprior(params):
     The given priors in this function should not be changed, and were defined by Tamara Davis"""
     if len(params) == 2:    #the below priors are for datasets 00 to 3 only. Since they're simple models, they only have two parameters
         om, ol = params
-        if (0 <= om <= 1) and (0 <= ol <= 1):
+        if (0 <= om <= 1) and (0 <= ol <= 1) and (0.95 <= om + ol <= 1.05):
             return 0.0      
         else:
             return -np.inf
