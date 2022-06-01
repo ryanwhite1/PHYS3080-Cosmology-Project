@@ -7,7 +7,9 @@ Created on Sun May  8 15:42:39 2022
 import numpy as np
 import os 
 from matplotlib import pyplot as plt
+import matplotlib.colors as colors
 import matplotlib.ticker
+from matplotlib.ticker import LogFormatter
 from matplotlib import rc
 from scipy import integrate
 
@@ -125,12 +127,23 @@ fig.savefig(dir_path+'\\Part One Graphs\\Age of Universe vs Parameter Value.pdf'
 plt.close(fig)
 
 
-
+#this next code plots a contour graph for the age of the universe
 om_arr = np.arange(0, 1, 0.02); ol_arr = np.arange(0, 1.5, 0.02)
 ages = np.array([[integrate.quad(adotinv, 0, 1, args=(OM, OL, orad))[0] / H0y for OM in om_arr] for OL in ol_arr])
 fig, ax = plt.subplots()
 age = ax.pcolormesh(om_arr, ol_arr, ages)
-plt.colorbar(age, orientation='vertical', label="Age of Universe (Gyr)")
+agemax = 0; agemin = 30
+for agearray in ages:
+    for age in agearray:
+        if np.isnan(age):
+            continue
+        else:
+            if age >= agemax:
+                agemax = age
+            if age <= agemin:
+                agemin = age
+pcm = ax.pcolor(om_arr, ol_arr, ages, norm = colors.LogNorm(vmin=agemin, vmax=agemax), shading = 'auto')
+cb = fig.colorbar(pcm, orientation='vertical', label="Age of Universe (Gyr)", format='%2.f', ticks=[10, 15, 20, 25, 30, 40])
 ax.set_xlabel("$\Omega_m$"); ax.set_ylabel("$\Omega_\Lambda$")
 fig.savefig(dir_path+'\\Part One Graphs\\Age of Universe vs Parameter Value 2.png', dpi=200, bbox_inches='tight', pad_inches = 0.01)
 fig.savefig(dir_path+'\\Part One Graphs\\Age of Universe vs Parameter Value 2.pdf', dpi=200, bbox_inches='tight', pad_inches = 0.01)

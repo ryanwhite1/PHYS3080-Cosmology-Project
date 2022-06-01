@@ -100,7 +100,7 @@ def lnprior0(params):
     The given priors in this function should not be changed, and were defined by Tamara Davis"""
     if len(params) == 2:    #the below priors are for datasets 00 to 3 only. Since they're simple models, they only have two parameters
         om, ol = params
-        if 0.25 <= om <= 0.35 and (0 <= ol <= 1):
+        if (0 <= om <= 1) and (0 <= ol <= 1):
             return 0.0      
         else:
             return -np.inf
@@ -112,7 +112,7 @@ def lnprior(params):
     The given priors in this function should not be changed, and were defined by Tamara Davis"""
     if len(params) == 2:    #the below priors are for datasets 00 to 3 only. Since they're simple models, they only have two parameters
         om, ol = params
-        if (0 <= om <= 1) and (0 <= ol <= 1) and (0.95 <= om + ol <= 1.05):
+        if (0 <= om <= 1) and (0 <= ol <= 1):
             return 0.0      
         else:
             return -np.inf
@@ -240,7 +240,7 @@ def main():
             plot_params = mean_params       #options are mean_params, best_params, and maxlikeli
             
             #calculate the chi2 of the model, and also its chi2 per degree of freedom
-            chi2 = np.sum((model(plot_params, zsReduced, muReduced, muerrReduced) - muReduced)**2 / muerrReduced**2)
+            chi2 = np.sum((model(plot_params, zsReduced, muReduced, muerrReduced) - muReduced)**2 / muerrReduced**2) + ((plot_params[0] - 0.3) / 0.05)**2
             chi2_reduced = chi2 / (len(muReduced) - 2)
             
             #now to create the models with which we'll plot against each other
@@ -344,7 +344,7 @@ def main():
             plot_params = mean_params       #options are mean_params, best_params, and maxlikeli
             
             #calculate the chi2 of the model, and also its chi2 per degree of freedom
-            chi2 = np.sum((model(plot_params, zsReduced, muReduced, muerrReduced) - muReduced)**2 / muerrReduced**2)
+            chi2 = np.sum((model(plot_params, zsReduced, muReduced, muerrReduced) - muReduced)**2 / muerrReduced**2) + ((plot_params[0] + plot_params[1] - 1) / 0.05)**2
             chi2_reduced = chi2 / (len(muReduced) - 2)
             
             #now to create the models with which we'll plot against each other
